@@ -46,6 +46,7 @@ fun HomeScreen(
     onNavigateToVoiceAi: () -> Unit,
     onNavigateToSubscription: () -> Unit,
     onNavigateToAdminDashboard: () -> Unit,
+    onNavigateToSettings: () -> Unit = {},
     onLogout: () -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
@@ -117,6 +118,7 @@ fun HomeScreen(
                     container = container,
                     onNavigateToSubscription = onNavigateToSubscription,
                     onNavigateToAdminDashboard = onNavigateToAdminDashboard,
+                    onNavigateToSettings = onNavigateToSettings,
                     onLogout = onLogout
                 )
             }

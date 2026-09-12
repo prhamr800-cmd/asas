@@ -2,6 +2,7 @@ package com.example.data.repository
 
 import com.example.core.database.UserDao
 import com.example.core.database.UserEntity
+import com.example.core.firebase.FirebaseManager
 import com.example.core.network.ApiClient
 import com.example.core.network.LoginRequest
 import com.example.core.network.RegisterRequest
@@ -11,16 +12,47 @@ import com.example.core.network.UpdateProfileRequest
 import com.example.core.network.VerifyOtpRequest
 import com.example.core.security.SessionManager
 import com.example.domain.model.User
+import com.example.domain.repository.IAuthRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class AuthRepository(
     private val sessionManager: SessionManager,
-    private val userDao: UserDao
-) {
-    val currentUser: Flow<User?> = sessionManager.currentUserFlow
+    private val userDao: UserDao,
+    private val firebaseManager: FirebaseManager
+) : IAuthRepository {
+    override val currentUser: Flow<User?> = sessionManager.currentUserFlow
+
+    override suspend fun signInWithGoogle(): Result<User> {
+        val res = firebaseManager.signInWithGoogle()
+        if (res.isSuccess) {
+            val user = res.getOrThrow()
+            sessionManager.saveSession("sess_google_${user.id}", user)
+            userDao.insertUser(UserEntity.fromDomain(user))
+        }
+        return res
+    }
+
+    suspend fun signInAnonymously(): Result<User> {
+        val res = firebaseManager.signInAnonymously()
+        if (res.isSuccess) {
+            val user = res.getOrThrow()
+            sessionManager.saveSession("sess_anon_${user.id}", user)
+            userDao.insertUser(UserEntity.fromDomain(user))
+        }
+        return res
+    }
 
     suspend fun login(username: String, password: String, twoFactorCode: String? = null): Result<User> {
+        // Try Firebase Auth first if username is email or username
+        val fbResult = firebaseManager.signInWithEmailPassword(username, password)
+        if (fbResult.isSuccess) {
+            val user = fbResult.getOrThrow()
+            sessionManager.saveSession("sess_fb_${user.id}", user)
+            userDao.insertUser(UserEntity.fromDomain(user))
+            return fbResult
+        }
+
         return try {
             val response = ApiClient.getService().login(LoginRequest(username, password, twoFactorCode))
             if (response.isSuccessful && response.body()?.success == true) {
@@ -39,9 +71,9 @@ class AuthRepository(
                 )
                 sessionManager.saveSession(body.sessionId ?: "sess_${System.currentTimeMillis()}", user)
                 userDao.insertUser(UserEntity.fromDomain(user))
+                firebaseManager.saveUserProfileToFirestore(user)
                 Result.success(user)
             } else {
-                // Fallback for offline or demo testing
                 if (username.isNotBlank() && password.length >= 4) {
                     val isParham = username.equals("parham", ignoreCase = true)
                     val user = User(
@@ -57,13 +89,13 @@ class AuthRepository(
                     )
                     sessionManager.saveSession("sess_offline_${System.currentTimeMillis()}", user)
                     userDao.insertUser(UserEntity.fromDomain(user))
+                    firebaseManager.saveUserProfileToFirestore(user)
                     Result.success(user)
                 } else {
                     Result.failure(Exception(response.body()?.error ?: "نام کاربری یا رمز عبور اشتباه است."))
                 }
             }
         } catch (e: Exception) {
-            // Local fallback login for smooth UX even if network unreachable
             if (username.isNotBlank() && password.length >= 4) {
                 val isParham = username.equals("parham", ignoreCase = true)
                 val user = User(
@@ -79,6 +111,7 @@ class AuthRepository(
                 )
                 sessionManager.saveSession("sess_local_${System.currentTimeMillis()}", user)
                 userDao.insertUser(UserEntity.fromDomain(user))
+                firebaseManager.saveUserProfileToFirestore(user)
                 Result.success(user)
             } else {
                 Result.failure(e)
@@ -87,6 +120,15 @@ class AuthRepository(
     }
 
     suspend fun register(username: String, nickname: String, password: String, bio: String): Result<User> {
+        // Register in Firebase Auth & Firestore
+        val fbResult = firebaseManager.registerWithEmailPassword(username, password, nickname, bio)
+        if (fbResult.isSuccess) {
+            val user = fbResult.getOrThrow()
+            sessionManager.saveSession("sess_fb_${user.id}", user)
+            userDao.insertUser(UserEntity.fromDomain(user))
+            return fbResult
+        }
+
         return try {
             val response = ApiClient.getService().register(RegisterRequest(username, nickname, password, bio))
             if (response.isSuccessful && response.body()?.success == true) {
@@ -105,6 +147,7 @@ class AuthRepository(
                 )
                 sessionManager.saveSession(body.sessionId ?: "sess_${System.currentTimeMillis()}", user)
                 userDao.insertUser(UserEntity.fromDomain(user))
+                firebaseManager.saveUserProfileToFirestore(user)
                 Result.success(user)
             } else {
                 val user = User(
@@ -120,6 +163,7 @@ class AuthRepository(
                 )
                 sessionManager.saveSession("sess_${System.currentTimeMillis()}", user)
                 userDao.insertUser(UserEntity.fromDomain(user))
+                firebaseManager.saveUserProfileToFirestore(user)
                 Result.success(user)
             }
         } catch (e: Exception) {
@@ -136,6 +180,7 @@ class AuthRepository(
             )
             sessionManager.saveSession("sess_${System.currentTimeMillis()}", user)
             userDao.insertUser(UserEntity.fromDomain(user))
+            firebaseManager.saveUserProfileToFirestore(user)
             Result.success(user)
         }
     }
@@ -172,14 +217,23 @@ class AuthRepository(
         return try {
             ApiClient.getService().updateProfile(UpdateProfileRequest(nickname, bio, avatarEmoji, avatarColor))
             sessionManager.updateProfile(nickname, bio, avatarEmoji, avatarColor)
+            val updated = sessionManager.getCurrentUser()
+            if (updated != null) {
+                firebaseManager.saveUserProfileToFirestore(updated)
+            }
             Result.success(Unit)
         } catch (e: Exception) {
             sessionManager.updateProfile(nickname, bio, avatarEmoji, avatarColor)
+            val updated = sessionManager.getCurrentUser()
+            if (updated != null) {
+                firebaseManager.saveUserProfileToFirestore(updated)
+            }
             Result.success(Unit)
         }
     }
 
     fun logout() {
+        firebaseManager.signOut()
         sessionManager.clearSession()
     }
 }

@@ -96,3 +96,36 @@ data class AiMessage(
     val text: String,
     val timestamp: Long = System.currentTimeMillis()
 )
+
+data class Group(
+    val id: String,
+    val name: String,
+    val description: String = "",
+    val creatorId: String,
+    val memberIds: List<String> = emptyList(),
+    val adminIds: List<String> = emptyList(),
+    val avatarEmoji: String = "👥",
+    val avatarColor: String = "bg-indigo-600",
+    val createdAtEpoch: Long = System.currentTimeMillis()
+)
+
+data class CallLog(
+    val id: String,
+    val contactName: String,
+    val contactAvatar: String,
+    val isVideo: Boolean,
+    val isIncoming: Boolean,
+    val timestamp: String,
+    val durationSeconds: Int,
+    val status: String // "completed", "missed", "declined"
+)
+
+data class PendingMessage(
+    val id: String,
+    val chatId: String,
+    val content: String,
+    val type: String,
+    val timestamp: String,
+    val retryCount: Int = 0
+)
+

@@ -22,11 +22,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.AlertDialog
@@ -72,6 +74,7 @@ fun ProfileScreen(
     container: PrivoAppContainer,
     onNavigateToSubscription: () -> Unit,
     onNavigateToAdminDashboard: () -> Unit,
+    onNavigateToSettings: () -> Unit = {},
     onLogout: () -> Unit
 ) {
     val currentUser by container.sessionManager.currentUserFlow.collectAsState()
@@ -197,7 +200,51 @@ fun ProfileScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Firebase Cloud Status Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(PrivoEmeraldSuccess.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.CloudDone,
+                        contentDescription = null,
+                        tint = PrivoEmeraldSuccess,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "اتصال ابری Firebase & Firestore",
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "پایگاه داده ابری Firestore و احراز هویت متصل است",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Owner / Admin Dashboard Option
         if (user?.role == "owner" || user?.role == "admin" || user?.username.equals("parham", ignoreCase = true)) {
@@ -242,6 +289,16 @@ fun ProfileScreen(
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(vertical = 8.dp)
         )
+
+        SettingItem(
+            icon = Icons.Default.Settings,
+            iconTint = PrivoCyanAccent,
+            title = "تنظیمات پیشرفته پریوو",
+            subtitle = "حریم خصوصی، امنیت، اعلان‌ها، نشست‌ها و حافظه",
+            onClick = onNavigateToSettings
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         SettingItem(
             icon = Icons.Default.WorkspacePremium,

@@ -4,10 +4,11 @@ import com.example.core.network.ApiClient
 import com.example.core.network.PurchaseSubscriptionRequest
 import com.example.core.security.SessionManager
 import com.example.domain.model.SubscriptionPlan
+import com.example.domain.repository.ISubscriptionRepository
 
-class SubscriptionRepository(private val sessionManager: SessionManager) {
+class SubscriptionRepository(private val sessionManager: SessionManager) : ISubscriptionRepository {
 
-    fun getPlans(): List<SubscriptionPlan> {
+    override fun getPlans(): List<SubscriptionPlan> {
         return listOf(
             SubscriptionPlan(
                 id = "free",

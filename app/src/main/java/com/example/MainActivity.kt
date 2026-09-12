@@ -31,6 +31,7 @@ import com.example.ui.screens.auth.RegisterScreen
 import com.example.ui.screens.calls.ActiveCallScreen
 import com.example.ui.screens.conversation.ConversationScreen
 import com.example.ui.screens.home.HomeScreen
+import com.example.ui.screens.settings.SettingsScreen
 import com.example.ui.screens.splash.SplashScreen
 import com.example.ui.screens.subscription.SubscriptionScreen
 import com.example.ui.theme.PrivoTheme
@@ -84,6 +85,7 @@ object NavRoutes {
     const val AI_IMAGE_GEN = "ai_image_gen"
     const val AI_VOICE = "ai_voice"
     const val SUBSCRIPTION = "subscription"
+    const val SETTINGS = "settings"
     const val ADMIN_DASHBOARD = "admin_dashboard"
 
     fun buildConversationRoute(chatId: String, name: String, emoji: String, isGroup: Boolean): String {
@@ -193,6 +195,9 @@ fun PrivoNavApp(container: PrivoAppContainer) {
                 onNavigateToAdminDashboard = {
                     navController.navigate(NavRoutes.ADMIN_DASHBOARD)
                 },
+                onNavigateToSettings = {
+                    navController.navigate(NavRoutes.SETTINGS)
+                },
                 onLogout = {
                     navController.navigate(NavRoutes.LOGIN) {
                         popUpTo(NavRoutes.HOME) { inclusive = true }
@@ -271,6 +276,23 @@ fun PrivoNavApp(container: PrivoAppContainer) {
                 currentUserFlow = container.sessionManager.currentUserFlow,
                 onNavigateBack = {
                     navController.popBackStack()
+                }
+            )
+        }
+
+        composable(NavRoutes.SETTINGS) {
+            SettingsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToSubscription = {
+                    navController.navigate(NavRoutes.SUBSCRIPTION)
+                },
+                onLogout = {
+                    container.authRepository.logout()
+                    navController.navigate(NavRoutes.LOGIN) {
+                        popUpTo(NavRoutes.HOME) { inclusive = true }
+                    }
                 }
             )
         }

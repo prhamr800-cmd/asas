@@ -4,12 +4,14 @@ import com.example.core.database.ConversationDao
 import com.example.core.database.ConversationEntity
 import com.example.core.database.MessageDao
 import com.example.core.database.MessageEntity
+import com.example.core.firebase.FirebaseManager
 import com.example.core.network.ApiClient
 import com.example.core.network.SendMessageRequest
 import com.example.core.network.WebSocketManager
 import com.example.core.network.WsEvent
 import com.example.domain.model.Conversation
 import com.example.domain.model.Message
+import com.example.domain.repository.IChatRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -24,8 +26,9 @@ import java.util.UUID
 class ChatRepository(
     private val conversationDao: ConversationDao,
     private val messageDao: MessageDao,
-    private val webSocketManager: WebSocketManager
-) {
+    private val webSocketManager: WebSocketManager,
+    private val firebaseManager: FirebaseManager
+) : IChatRepository {
     private val scope = CoroutineScope(Dispatchers.IO)
 
     init {
@@ -38,6 +41,20 @@ class ChatRepository(
                     }
                     else -> {}
                 }
+            }
+        }
+
+        // Listen to real-time Firestore Chats and sync to Room
+        scope.launch {
+            try {
+                firebaseManager.listenToChats().collect { firestoreChats ->
+                    if (firestoreChats.isNotEmpty()) {
+                        val entities = firestoreChats.map { ConversationEntity.fromDomain(it) }
+                        conversationDao.insertConversations(entities)
+                    }
+                }
+            } catch (e: Exception) {
+                // Keep local
             }
         }
     }
@@ -77,6 +94,20 @@ class ChatRepository(
     }
 
     fun getMessages(chatId: String): Flow<List<Message>> {
+        // Listen to Firestore real-time messages for this chat in the background
+        scope.launch {
+            try {
+                firebaseManager.listenToMessages(chatId).collect { fsMessages ->
+                    if (fsMessages.isNotEmpty()) {
+                        val entities = fsMessages.map { MessageEntity.fromDomain(it) }
+                        messageDao.insertMessages(entities)
+                    }
+                }
+            } catch (e: Exception) {
+                // Ignore
+            }
+        }
+
         return messageDao.getMessagesForChat(chatId).map { list ->
             if (list.isEmpty()) {
                 seedInitialMessages(chatId)
@@ -131,6 +162,11 @@ class ChatRepository(
             )
         )
         conversationDao.insertConversations(defaults)
+
+        // Seed to Firestore as well
+        defaults.forEach {
+            firebaseManager.createChatInFirestore(it.toDomain())
+        }
     }
 
     private suspend fun seedInitialMessages(chatId: String) {
@@ -138,39 +174,65 @@ class ChatRepository(
             "global-group" -> {
                 val msgs = listOf(
                     MessageEntity(
-                        id = "msg_seed_1",
+                        id = "m1",
                         chatId = chatId,
                         senderId = "usr_parham",
-                        senderNickname = "پرهام (مدیریت کل سیستم)",
-                        content = "به پیام‌رسان بومی پریوو خوش آمدید! این نسخه با کاتلین و جت‌پک کامپوز به صورت کاملاً نیتیو طراحی شده است. 🚀",
+                        senderNickname = "پرهام (مدیر کل)",
+                        content = "درود به همگی! نسخه جدید پیام‌رسان پریوو با پشتیبانی از فایربیس، هوش مصنوعی Gemini و تماس‌های صوتی و تصویری آماده شد.",
                         timestamp = "10:25",
                         status = "read",
                         type = "text"
                     ),
                     MessageEntity(
-                        id = "msg_seed_2",
+                        id = "m2",
+                        chatId = chatId,
+                        senderId = "usr_sara",
+                        senderNickname = "سارا مهدوی",
+                        content = "سلام آقای مهندس، طراحی برنامه فوق‌العاده سریع و روونه!",
+                        timestamp = "10:28",
+                        status = "read",
+                        type = "text"
+                    ),
+                    MessageEntity(
+                        id = "m3",
                         chatId = chatId,
                         senderId = "system",
-                        senderNickname = "سیستم",
-                        content = "سرورهای صوتی و تصویری LiveKit، هوش مصنوعی Gemini و پایگاه داده محلی آنلاین می‌باشند.",
+                        senderNickname = "پریوو سیستم",
+                        content = "به پیام‌رسان بومی پریوو خوش آمدید! 🎉",
                         timestamp = "10:30",
                         status = "read",
-                        type = "system"
+                        type = "text"
                     )
                 )
                 messageDao.insertMessages(msgs)
+                msgs.forEach { firebaseManager.sendMessageToFirestore(it.toDomain()) }
             }
             "chat_ai_assistant" -> {
                 val msgs = listOf(
                     MessageEntity(
-                        id = "msg_ai_welcome",
+                        id = "ai_welcome",
                         chatId = chatId,
                         senderId = "usr_parham_ai",
                         senderNickname = "پرهام AI",
-                        content = "سلام! من دستیار هوش مصنوعی پرهام در پریوو هستم. می‌توانم به سوالات شما پاسخ دهم، متن‌ها را ترجمه کنم، تصاویر جدید بسازم، یا گفتگوها را خلاصه کنم. چه کاری برایتان انجام دهم؟",
+                        content = "سلام! من دستیار هوشمند پریوو هستم. می‌توانم به سوالات شما پاسخ دهم، گفتگوها را خلاصه کنم و تصاویر تولید کنم.",
                         timestamp = "10:28",
                         status = "read",
-                        type = "ai"
+                        type = "text"
+                    )
+                )
+                messageDao.insertMessages(msgs)
+            }
+            "chat_support_bot" -> {
+                val msgs = listOf(
+                    MessageEntity(
+                        id = "bot_welcome",
+                        chatId = chatId,
+                        senderId = "usr_support_bot",
+                        senderNickname = "پشتیبانی پریوو",
+                        content = "درود! برای ثبت هرگونه پیشنهاد، انتقاد یا گزارش تخلف می‌توانید پیام خود را در اینجا ارسال فرمایید.",
+                        timestamp = "دیروز",
+                        status = "read",
+                        type = "text"
                     )
                 )
                 messageDao.insertMessages(msgs)
@@ -178,20 +240,21 @@ class ChatRepository(
         }
     }
 
-    suspend fun syncRemoteChats() {
+    suspend fun refreshConversations() {
         try {
-            val res = ApiClient.getService().getChats()
-            if (res.isSuccessful && res.body()?.success == true) {
-                val remoteChats = res.body()!!.chats.map { netChat ->
+            val response = ApiClient.getService().getChats()
+            if (response.isSuccessful && response.body() != null) {
+                val remoteChats = response.body()!!.map { netChat ->
                     ConversationEntity(
                         id = netChat.id,
                         name = netChat.name,
-                        type = netChat.type ?: "direct",
+                        type = netChat.type,
                         creatorId = netChat.creatorId ?: "",
-                        members = netChat.members ?: emptyList(),
+                        members = netChat.members,
                         lastMessageText = netChat.lastMessageText ?: "",
                         lastMessageTime = netChat.lastMessageTime ?: "",
-                        unreadCount = netChat.unreadCount ?: 0,
+                        unreadCount = netChat.unreadCount,
+                        isPinned = netChat.isPinned,
                         avatarEmoji = netChat.avatarEmoji ?: "💬",
                         avatarColor = netChat.avatarColor ?: "bg-indigo-600",
                         description = netChat.description ?: ""
@@ -237,7 +300,12 @@ class ChatRepository(
         messageDao.insertMessage(localMsg)
         conversationDao.updateLastMessage(chatId, if (type == "voice") "🎤 پیام صوتی" else content, timeStr)
 
-        // Try sending to remote
+        // Sync to Firestore cloud database
+        scope.launch {
+            firebaseManager.sendMessageToFirestore(localMsg.toDomain())
+        }
+
+        // Try sending to REST backend
         scope.launch {
             try {
                 val req = SendMessageRequest(
@@ -280,13 +348,13 @@ class ChatRepository(
                 if (res.isSuccessful && res.body()?.success == true && !res.body()?.reply.isNullOrBlank()) {
                     replyText = res.body()!!.reply!!
                 } else {
-                    replyText = generateSmartAiMockResponse(userPrompt)
+                    replyText = "پاسخ از طرف دستیار هوشمند پریوو:\nپیام شما دریافت شد. من آماده پاسخگویی به هرگونه درخواست یا راهنمایی هستم."
                 }
             } catch (e: Exception) {
-                replyText = generateSmartAiMockResponse(userPrompt)
+                replyText = "پاسخ آفلاین پریوو AI:\nپیام شما را دریافت کردم. ارتباط من با سرور موقتاً در وضعیت آفلاین است، اما تمام امکانات محلی در دسترس هستند."
             }
 
-            val aiMessage = MessageEntity(
+            val aiMsg = MessageEntity(
                 id = aiMsgId,
                 chatId = chatId,
                 senderId = "usr_parham_ai",
@@ -294,43 +362,55 @@ class ChatRepository(
                 content = replyText,
                 timestamp = timeStr,
                 status = "read",
-                type = "ai"
+                type = "text"
             )
-            messageDao.insertMessage(aiMessage)
+            messageDao.insertMessage(aiMsg)
             conversationDao.updateLastMessage(chatId, replyText, timeStr)
+            firebaseManager.sendMessageToFirestore(aiMsg.toDomain())
         }
     }
 
-    private fun generateSmartAiMockResponse(prompt: String): String {
-        val lower = prompt.lowercase()
-        return when {
-            lower.contains("سلام") || lower.contains("درود") ->
-                "سلام و درود بر شما! من دستیار هوشمند پریوو هستم. چطور می‌توانم در ارتباطات، خلاصه‌سازی و مدیریت کارهایتان به شما کمک کنم؟"
-            lower.contains("قابلیت") || lower.contains("ویژگی") ->
-                "پیام‌رسان پریوو امکاناتی نظیر تماس‌های باکیفیت LiveKit، دستیار هوشمند متصل به مدل‌های گوگل، قابلیت رمزنگاری پیام‌ها، تولید تصویر با هوش مصنوعی و اشتراک ویژه Plus را داراست."
-            lower.contains("پرهام") ->
-                "پرهام طراح و بنیان‌گذار سیستم پریوو است که هدف آن ایجاد بستر امن، مستقل و بومی برای ارتباطات پیشرفته است."
-            else ->
-                "درخواست شما دریافت شد: «$prompt». این درخواست با هوش مصنوعی تحلیل گردید. می‌توانید برای خلاصه‌سازی گفتگوها یا ترجمه زنده، دکمه ابزار AI را در بالای هر چت انتخاب فرمایید."
-        }
-    }
-
-    suspend fun createGroup(name: String, emoji: String, description: String): String {
+    suspend fun createGroup(name: String, description: String, creatorId: String): Conversation {
         val groupId = "group_" + UUID.randomUUID().toString().substring(0, 8)
-        val entity = ConversationEntity(
+        val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+
+        val colors = listOf("bg-blue-600", "bg-purple-600", "bg-emerald-600", "bg-amber-600", "bg-rose-600")
+        val emojis = listOf("👥", "🚀", "⚡", "🌟", "💡", "🎯")
+
+        val newGroup = ConversationEntity(
             id = groupId,
             name = name,
             type = "group",
-            creatorId = "current",
-            members = listOf("current"),
+            creatorId = creatorId,
+            members = listOf(creatorId),
             lastMessageText = "گروه ایجاد گردید.",
-            lastMessageTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date()),
+            lastMessageTime = timeStr,
             unreadCount = 0,
-            avatarEmoji = emoji.ifBlank { "👥" },
-            avatarColor = "bg-purple-600",
+            isPinned = false,
+            avatarEmoji = emojis.random(),
+            avatarColor = colors.random(),
             description = description
         )
-        conversationDao.insertConversation(entity)
-        return groupId
+
+        conversationDao.insertConversation(newGroup)
+        firebaseManager.createChatInFirestore(newGroup.toDomain())
+
+        // Also notify backend
+        scope.launch {
+            try {
+                ApiClient.getService().createChat(
+                    com.example.core.network.CreateChatRequest(
+                        name = name,
+                        type = "group",
+                        description = description,
+                        memberIds = listOf(creatorId)
+                    )
+                )
+            } catch (e: Exception) {
+                // Saved locally and in Firestore
+            }
+        }
+
+        return newGroup.toDomain()
     }
 }

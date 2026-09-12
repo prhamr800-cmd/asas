@@ -19,6 +19,7 @@ class CallManager(private val context: Context) {
     private var timerJob: Job? = null
 
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    private val liveKitService = LiveKitService(context)
 
     private val _activeCall = MutableStateFlow<CallSession?>(null)
     val activeCall: StateFlow<CallSession?> = _activeCall.asStateFlow()
@@ -39,7 +40,7 @@ class CallManager(private val context: Context) {
             durationSeconds = 0,
             isMuted = false,
             isCameraOn = isVideo,
-            isSpeakerOn = isVideo // Default speaker for video calls
+            isSpeakerOn = isVideo
         )
         _activeCall.value = call
 
@@ -47,12 +48,26 @@ class CallManager(private val context: Context) {
         audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
         audioManager.isSpeakerphoneOn = call.isSpeakerOn
 
-        // Simulate network connection handshake or LiveKit room connection
+        liveKitService.connectToRoom(
+            roomName = "room_${chatId}",
+            participantIdentity = "me",
+            isVideo = isVideo
+        )
+
         scope.launch {
             delay(1500)
             _activeCall.value = _activeCall.value?.copy(status = CallStatus.CONNECTED)
             startDurationTimer()
         }
+    }
+
+    fun acceptIncomingCall() {
+        _activeCall.value = _activeCall.value?.copy(status = CallStatus.CONNECTED)
+        startDurationTimer()
+    }
+
+    fun rejectIncomingCall() {
+        endCall()
     }
 
     private fun startDurationTimer() {
@@ -67,30 +82,41 @@ class CallManager(private val context: Context) {
         }
     }
 
-    fun toggleMute() {
+    fun toggleMute(): Boolean {
+        var isNowMuted = false
         _activeCall.value = _activeCall.value?.let {
             val nextMute = !it.isMuted
             audioManager.isMicrophoneMute = nextMute
+            isNowMuted = nextMute
             it.copy(isMuted = nextMute)
         }
+        return isNowMuted
     }
 
-    fun toggleCamera() {
+    fun toggleCamera(): Boolean {
+        var isNowCameraOn = true
         _activeCall.value = _activeCall.value?.let {
-            it.copy(isCameraOn = !it.isCameraOn)
+            val nextCamera = !it.isCameraOn
+            isNowCameraOn = nextCamera
+            it.copy(isCameraOn = nextCamera)
         }
+        return isNowCameraOn
     }
 
-    fun toggleSpeaker() {
+    fun toggleSpeaker(): Boolean {
+        var isNowSpeaker = false
         _activeCall.value = _activeCall.value?.let {
             val nextSpeaker = !it.isSpeakerOn
             audioManager.isSpeakerphoneOn = nextSpeaker
+            isNowSpeaker = nextSpeaker
             it.copy(isSpeakerOn = nextSpeaker)
         }
+        return isNowSpeaker
     }
 
     fun endCall() {
         timerJob?.cancel()
+        liveKitService.disconnect()
         _activeCall.value = _activeCall.value?.copy(status = CallStatus.DISCONNECTED)
         audioManager.mode = AudioManager.MODE_NORMAL
         audioManager.isSpeakerphoneOn = false

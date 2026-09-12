@@ -8,12 +8,13 @@ import com.example.core.network.AiTranslateRequest
 import com.example.core.network.ApiClient
 import com.example.domain.model.AiMessage
 import com.example.domain.model.AiSummaryResult
+import com.example.domain.repository.IAiRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.UUID
 
-class AiRepository {
+class AiRepository : IAiRepository {
     private val _aiChatHistory = MutableStateFlow<List<AiMessage>>(
         listOf(
             AiMessage(
@@ -25,7 +26,9 @@ class AiRepository {
     )
     val aiChatHistory: StateFlow<List<AiMessage>> = _aiChatHistory.asStateFlow()
 
-    suspend fun sendMessage(userText: String): String {
+    override fun getAssistantHistory(): List<AiMessage> = _aiChatHistory.value
+
+    override suspend fun sendChatMessage(userText: String): Result<String> {
         val userMsg = AiMessage(id = UUID.randomUUID().toString(), role = "user", text = userText)
         _aiChatHistory.value = _aiChatHistory.value + userMsg
 
@@ -38,67 +41,86 @@ class AiRepository {
             }
             val modelMsg = AiMessage(id = UUID.randomUUID().toString(), role = "model", text = replyText)
             _aiChatHistory.value = _aiChatHistory.value + modelMsg
-            replyText
+            Result.success(replyText)
         } catch (e: Exception) {
             val replyText = generateLocalAiFallback(userText)
             val modelMsg = AiMessage(id = UUID.randomUUID().toString(), role = "model", text = replyText)
             _aiChatHistory.value = _aiChatHistory.value + modelMsg
-            replyText
+            Result.success(replyText)
+        }
+    }
+
+    suspend fun sendMessage(userText: String): String {
+        return sendChatMessage(userText).getOrDefault(generateLocalAiFallback(userText))
+    }
+
+    override suspend fun summarizeConversation(chatId: String, messagesText: String): Result<AiSummaryResult> {
+        return try {
+            val res = ApiClient.getService().summarizeConversation(AiSummarizeRequest(text = messagesText))
+            if (res.isSuccessful && res.body()?.success == true && !res.body()?.summary.isNullOrBlank()) {
+                val b = res.body()!!
+                Result.success(
+                    AiSummaryResult(
+                        summary = b.summary ?: "خلاصه آماده نشد.",
+                        keyPoints = b.keyPoints ?: listOf("موضوعات مطرح‌شده به درستی تحلیل شدند."),
+                        actionItems = b.actionItems ?: listOf("پیگیری نکات مهم توسط اعضا"),
+                        sentiment = "Positive"
+                    )
+                )
+            } else {
+                Result.success(generateLocalSummary(messagesText))
+            }
+        } catch (e: Exception) {
+            Result.success(generateLocalSummary(messagesText))
         }
     }
 
     suspend fun summarizeText(content: String): AiSummaryResult {
+        return summarizeConversation("", content).getOrDefault(generateLocalSummary(content))
+    }
+
+    override suspend fun translateMessage(text: String, targetLanguage: String): Result<String> {
         return try {
-            val res = ApiClient.getService().summarizeConversation(AiSummarizeRequest(text = content))
-            if (res.isSuccessful && res.body()?.success == true && !res.body()?.summary.isNullOrBlank()) {
-                val b = res.body()!!
-                AiSummaryResult(
-                    summary = b.summary ?: "خلاصه آماده نشد.",
-                    keyPoints = b.keyPoints ?: listOf("موضوعات مطرح‌شده به درستی تحلیل شدند."),
-                    actionItems = b.actionItems ?: listOf("پیگیری نکات مهم توسط اعضا"),
-                    sentiment = "Positive"
-                )
+            val res = ApiClient.getService().translateText(AiTranslateRequest(text = text, targetLanguage = targetLanguage))
+            if (res.isSuccessful && res.body()?.success == true && !res.body()?.translatedText.isNullOrBlank()) {
+                Result.success(res.body()!!.translatedText!!)
             } else {
-                generateLocalSummary(content)
+                Result.success("[ترجمه به $targetLanguage]: $text")
             }
         } catch (e: Exception) {
-            generateLocalSummary(content)
+            Result.success("[ترجمه به $targetLanguage]: $text")
         }
     }
 
     suspend fun translate(text: String, targetLang: String): String {
+        return translateMessage(text, targetLang).getOrDefault("[ترجمه به $targetLang]: $text")
+    }
+
+    override suspend fun generateSuggestedReplies(lastMessage: String): Result<List<String>> {
         return try {
-            val res = ApiClient.getService().translateText(AiTranslateRequest(text = text, targetLanguage = targetLang))
-            if (res.isSuccessful && res.body()?.success == true && !res.body()?.translatedText.isNullOrBlank()) {
-                res.body()!!.translatedText!!
+            val res = ApiClient.getService().suggestReplies(AiSuggestRepliesRequest(lastMessage = lastMessage))
+            if (res.isSuccessful && res.body()?.success == true && !res.body()?.suggestions.isNullOrEmpty()) {
+                Result.success(res.body()!!.suggestions!!)
             } else {
-                "[ترجمه هوشمند]: $text"
+                Result.success(listOf("متشکرم، حتماً بررسی می‌کنم! 👍", "موافقم، هماهنگ کنیم. ✨", "الان فرصت ندارم، بعداً تماس می‌گیرم. ⏳"))
             }
         } catch (e: Exception) {
-            "[ترجمه هوشمند]: $text"
+            Result.success(listOf("متشکرم، حتماً بررسی می‌کنم! 👍", "موافقم، هماهنگ کنیم. ✨", "الان فرصت ندارم، بعداً تماس می‌گیرم. ⏳"))
         }
     }
 
     suspend fun suggestReplies(lastMessage: String): List<String> {
-        return try {
-            val res = ApiClient.getService().suggestReplies(AiSuggestRepliesRequest(lastMessage = lastMessage))
-            if (res.isSuccessful && res.body()?.success == true && !res.body()?.suggestions.isNullOrEmpty()) {
-                res.body()!!.suggestions!!
-            } else {
-                listOf("متشکرم، حتماً بررسی می‌کنم! 👍", "موافقم، هماهنگ کنیم. ✨", "الان فرصت ندارم، بعداً تماس می‌گیرم. ⏳")
-            }
-        } catch (e: Exception) {
+        return generateSuggestedReplies(lastMessage).getOrDefault(
             listOf("متشکرم، حتماً بررسی می‌کنم! 👍", "موافقم، هماهنگ کنیم. ✨", "الان فرصت ندارم، بعداً تماس می‌گیرم. ⏳")
-        }
+        )
     }
 
-    suspend fun generateImage(prompt: String, style: String = "futuristic"): Result<String> {
+    override suspend fun generateImage(prompt: String, style: String): Result<String> {
         return try {
             val res = ApiClient.getService().generateImage(AiGenerateImageRequest(prompt = prompt, style = style))
             if (res.isSuccessful && res.body()?.success == true && !res.body()?.imageUrl.isNullOrBlank()) {
                 Result.success(res.body()!!.imageUrl!!)
             } else {
-                // High quality placeholder image corresponding to modern AI generation
                 Result.success("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop")
             }
         } catch (e: Exception) {

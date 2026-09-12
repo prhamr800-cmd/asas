@@ -10,9 +10,12 @@ import androidx.room.TypeConverters
     entities = [
         UserEntity::class,
         ConversationEntity::class,
-        MessageEntity::class
+        MessageEntity::class,
+        GroupEntity::class,
+        CallEntity::class,
+        PendingMessageEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -20,6 +23,9 @@ abstract class PrivoDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun conversationDao(): ConversationDao
     abstract fun messageDao(): MessageDao
+    abstract fun groupDao(): GroupDao
+    abstract fun callDao(): CallDao
+    abstract fun pendingMessageDao(): PendingMessageDao
 
     companion object {
         @Volatile
