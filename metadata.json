@@ -1,0 +1,6 @@
+{
+  "name": "Privo",
+  "description": "Privo AI-powered messenger with real-time chat, AI assistant, voice/video calls, and end-to-end security.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

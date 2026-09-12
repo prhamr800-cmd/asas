@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&family=Syne:wght@700;800;900&family=Orbitron:wght@700;800;900&family=Space+Grotesk:wght@600;700&family=Vazirmatn:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+.font-privo {
+  font-family: 'Plus Jakarta Sans', 'Syne', 'Orbitron', 'Space Grotesk', sans-serif;
+  letter-spacing: 0.18em;
+  font-weight: 900;
+}
+
+@theme {
+  --font-sans: "Vazirmatn", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.5);
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #0f172a;
+  color: #f8fafc;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Smooth active theme transitions */
+.theme-transition {
+  transition: background-color 0.3s ease, border-color 0.3s ease, text-color 0.3s ease;
+}
+
+@keyframes neonWave {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-neon-wave {
+  background-size: 300% 300%;
+  animation: neonWave 4s ease infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.4), 0 0 30px rgba(56, 189, 248, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(236, 72, 153, 0.6), 0 0 45px rgba(251, 191, 36, 0.5);
+  }
+}
+
+.glow-neon-dual-plus {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* Low RAM / Ultra Smooth Mode: Disable all GPU-heavy animations, blurs, transitions, shadows, and filters */
+.low-ram-mode *,
+.low-ram-mode *::before,
+.low-ram-mode *::after {
+  animation: none !important;
+  transition: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  will-change: auto !important;
+  filter: none !important;
+}
+
+/* Ensure glassmorphism elements stay readable with solid dark background */
+.low-ram-mode .backdrop-blur,
+.low-ram-mode .backdrop-blur-sm,
+.low-ram-mode .backdrop-blur-md,
+.low-ram-mode .backdrop-blur-lg,
+.low-ram-mode .backdrop-blur-xl,
+.low-ram-mode .backdrop-blur-2xl {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-color: rgba(15, 23, 42, 0.98) !important;
+}
+
+.low-ram-mode .animate-spin,
+.low-ram-mode .animate-pulse,
+.low-ram-mode .animate-bounce,
+.low-ram-mode .animate-ping {
+  animation: none !important;
+}
+
+/* Mobile Touch & Safe Area Optimizations for Android */
+html, body {
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button, a, [role="button"] {
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+
+

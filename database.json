@@ -1,0 +1,277 @@
+{
+  "users": {
+    "usr_parham_ai": {
+      "bio": "دستیار هوشمند چت و حل مسائل شما مجهز به مدل پیشرفته Gemini. کافیست برای گفتگو با من یک چت خصوصی شروع کنید!",
+      "avatarEmoji": "🤖",
+      "nickname": "پرهام AI (هوش مصنوعی)",
+      "password": "123456",
+      "theme": "telegram",
+      "lastSeen": "2026-09-11T08:51:08.135Z",
+      "blockedUsers": [],
+      "id": "usr_parham_ai",
+      "avatarColor": "bg-gradient-to-tr from-cyan-500 to-blue-600",
+      "passwordHash": "",
+      "salt": "",
+      "twoFactorSecret": "",
+      "isOnline": true,
+      "role": "assistant",
+      "isTwoFactorEnabled": false,
+      "username": "parham_ai",
+      "publicKey": "PUB_DET_parham_ai_public_key_marker"
+    },
+    "usr_support_bot": {
+      "id": "usr_support_bot",
+      "bio": "ربات هوشمند پشتیبانی، رسیدگی به گزارشات و فیلترینگ خودکار متخلفین بدون نیاز به تماس مستقیم با مالک.",
+      "role": "assistant",
+      "nickname": "ربات پشتیبانی و گزارشات 🤖",
+      "avatarEmoji": "🤖",
+      "password": "123456",
+      "avatarColor": "bg-emerald-600",
+      "isOnline": true,
+      "createdAt": "2026-09-11T08:51:09.333Z",
+      "username": "support_bot"
+    },
+    "usr_parham": {
+      "bio": "مالک اصلی سیستم با دسترسی کامل و نظارت بر کاربران",
+      "avatarEmoji": "👑",
+      "sessions": [
+        {
+          "lastActive": "2026-09-11T08:51:11.883Z",
+          "id": "sess_405d237eaec9bf5dd888f4055bd12ffa",
+          "ip": "46.101.104.65, 169.254.169.126",
+          "deviceName": "کروم در ویندوز"
+        }
+      ],
+      "publicKey": "",
+      "lastSeen": "2026-09-11T08:51:11.884Z",
+      "twoFactorSecret": "MTIzNDU2Nzg5MDEyMzQ1Ng==",
+      "password": "13881388",
+      "blockedUsers": [],
+      "nickname": "پرهام (مدیریت کل سیستم)",
+      "isTwoFactorEnabled": false,
+      "passwordHash": "44288c8b55e9700d735d328025356c55457f9ebd991badab7f2f0cf0fecf789c",
+      "username": "parham",
+      "avatarColor": "bg-amber-600",
+      "salt": "d0d06bb99f68a5a5c8bd256e7da0472e",
+      "isOnline": true,
+      "id": "usr_parham",
+      "theme": "telegram",
+      "role": "owner"
+    }
+  },
+  "messages": [
+    {
+      "content": "س",
+      "isEncrypted": false,
+      "senderId": "usr_parham",
+      "senderNickname": "پرهام (مدیریت کل سیستم)",
+      "reactions": {},
+      "chatId": "saved_usr_parham",
+      "id": "msg_1785770755852_v9r3k",
+      "timestamp": "2026-08-03T15:25:56.844Z",
+      "type": "text",
+      "status": "sent"
+    },
+    {
+      "chatId": "saved_usr_parham",
+      "type": "file",
+      "id": "msg_1785853535683_vbzy4",
+      "senderSubscriptionTier": "plus",
+      "timestamp": "2026-08-04T14:25:38.035Z",
+      "status": "sent",
+      "fileUrl": "https://media.giphy.com/media/dzaUX7CAG0Ihi/giphy.gif",
+      "fileType": "image/gif",
+      "content": "![GIF](https://media.giphy.com/media/dzaUX7CAG0Ihi/giphy.gif)",
+      "senderNickname": "پرهام (مدیریت کل سیستم)",
+      "reactions": {},
+      "isEncrypted": false,
+      "bubbleBorderFrame": "default",
+      "senderId": "usr_parham",
+      "fileName": "animated.gif"
+    },
+    {
+      "isEncrypted": false,
+      "content": ".",
+      "senderId": "usr_parham",
+      "senderNickname": "پرهام (مدیریت کل سیستم)",
+      "reactions": {},
+      "chatId": "saved_usr_parham",
+      "id": "msg_1786035290799_261mm",
+      "timestamp": "2026-08-06T16:54:51.164Z",
+      "type": "text",
+      "status": "sent"
+    },
+    {
+      "reactions": {},
+      "senderNickname": "پرهام (مدیریت کل سیستم)",
+      "status": "sent",
+      "isEncrypted": false,
+      "content": ".",
+      "bubbleBorderFrame": "default",
+      "type": "text",
+      "senderId": "usr_parham",
+      "chatId": "saved_usr_parham",
+      "senderSubscriptionTier": "plus",
+      "timestamp": "2026-08-06T16:54:52.036Z",
+      "id": "msg_1786035290997_klokj"
+    },
+    {
+      "senderNickname": "پرهام (مدیریت کل سیستم)",
+      "type": "text",
+      "timestamp": "2026-08-06T16:54:52.386Z",
+      "content": ".",
+      "status": "sent",
+      "id": "msg_1786035291204_pc1rn",
+      "senderId": "usr_parham",
+      "chatId": "saved_usr_parham",
+      "reactions": {},
+      "isEncrypted": false
+    },
+    {
+      "senderId": "usr_parham",
+      "content": "سلام",
+      "isEncrypted": false,
+      "type": "text",
+      "chatId": "saved_usr_parham",
+      "senderNickname": "پرهام (مدیریت کل سیستم)",
+      "timestamp": "2026-08-06T17:05:53.054Z",
+      "reactions": {},
+      "id": "msg_1786035952659_v8l1c",
+      "status": "sent"
+    },
+    {
+      "type": "text",
+      "chatId": "saved_usr_parham",
+      "reactions": {},
+      "senderNickname": "پرهام (مدیریت کل سیستم)",
+      "status": "sent",
+      "timestamp": "2026-08-06T17:05:59.565Z",
+      "id": "msg_1786035959224_xu185",
+      "content": "خوبی عشقممم",
+      "isEncrypted": false,
+      "senderId": "usr_parham"
+    },
+    {
+      "id": "msg_1786035995200_n6p4h",
+      "timestamp": "2026-08-06T17:06:36.115Z",
+      "senderNickname": "پرهام (مدیریت کل سیستم)",
+      "status": "sent",
+      "content": ".",
+      "senderId": "usr_parham",
+      "type": "text",
+      "chatId": "saved_usr_parham",
+      "isEncrypted": false,
+      "reactions": {}
+    },
+    {
+      "timestamp": "2026-08-06T17:31:27.728Z",
+      "senderNickname": "پرهام (مدیریت کل سیستم)",
+      "id": "msg_1786037486479_l0yxc",
+      "status": "sent",
+      "senderId": "usr_parham",
+      "type": "text",
+      "isEncrypted": false,
+      "content": "سلام",
+      "chatId": "saved_usr_parham",
+      "reactions": {}
+    },
+    {
+      "senderNickname": "پرهام (مدیریت کل سیستم)",
+      "chatId": "saved_usr_parham",
+      "reactions": {},
+      "content": "خوبی",
+      "timestamp": "2026-08-06T17:31:31.075Z",
+      "senderId": "usr_parham",
+      "id": "msg_1786037490680_d0pxv",
+      "type": "text",
+      "isEncrypted": false,
+      "status": "sent"
+    },
+    {
+      "bubbleBorderFrame": "default",
+      "status": "sent",
+      "id": "msg_1786037494186_5kxdz",
+      "timestamp": "2026-08-06T17:31:34.532Z",
+      "senderId": "usr_parham",
+      "type": "text",
+      "chatId": "saved_usr_parham",
+      "isEncrypted": false,
+      "senderSubscriptionTier": "plus",
+      "reactions": {},
+      "content": "چه خبرا",
+      "senderNickname": "پرهام (مدیریت کل سیستم)"
+    },
+    {
+      "chatId": "saved_usr_parham",
+      "content": "سلام",
+      "isEncrypted": false,
+      "reactions": {},
+      "timestamp": "2026-08-06T18:54:12.899Z",
+      "status": "sent",
+      "senderId": "usr_parham",
+      "id": "msg_1786042451800_f1uwv",
+      "type": "text",
+      "senderNickname": "پرهام (مدیریت کل سیستم)"
+    },
+    {
+      "isEncrypted": false,
+      "status": "sent",
+      "reactions": {},
+      "bubbleBorderFrame": "default",
+      "senderId": "usr_parham",
+      "senderNickname": "پرهام (مدیریت کل سیستم)",
+      "type": "text",
+      "chatId": "saved_usr_parham",
+      "timestamp": "2026-08-06T22:51:46.742Z",
+      "id": "msg_1786056706237_mqza6",
+      "senderSubscriptionTier": "plus",
+      "content": "و"
+    }
+  ],
+  "chats": [
+    {
+      "description": "کانال رسمی پشتیبانی، گزارش مشکلات، اشکالات و گزارش تخلفات به هوش مصنوعی",
+      "id": "chat_support_bot_usr_parham",
+      "lastMessageText": "سلام! من ربات پشتیبانی و گزارشات هستم. پیام یا گزارش خودت رو بفرست.",
+      "members": [
+        "usr_support_bot",
+        "usr_parham"
+      ],
+      "name": "ربات پشتیبانی و گزارشات 🤖",
+      "avatarEmoji": "🤖",
+      "type": "direct",
+      "lastMessageTime": "2026-08-12T12:12:47.680Z",
+      "creatorId": "usr_support_bot",
+      "avatarColor": "bg-emerald-600"
+    },
+    {
+      "name": "پیام‌های ذخیره شده",
+      "type": "direct",
+      "lastMessageTime": "2026-08-06T22:51:46.742Z",
+      "description": "فضای شخصی شما برای یادداشت‌ها، پیام‌ها و ذخیره رسانه‌ها",
+      "creatorId": "usr_parham",
+      "id": "saved_usr_parham",
+      "avatarEmoji": "💾",
+      "avatarColor": "bg-indigo-600",
+      "members": [
+        "usr_parham"
+      ],
+      "lastMessageText": "و"
+    }
+  ],
+  "reports": [],
+  "subscriptionRequests": [],
+  "systemSettings": {
+    "bannedUsernames": "admin,owner,support,system,bot,ai,parham_ai,administrator",
+    "aiSystemInstructions": "تو یک دستیار هوش مصنوعی فوق‌العاده باهوش، صمیمی، دلسوز و مسلط به زبان فارسی هستی که به نام «پرهام AI» در این پیام‌رسان فعالیت می‌کنی. وظیفه تو این است که به پیام کاربر به صورت طبیعی، خلاقانه، عمیق و دوستانه پاسخ دهی. پاسخ‌هایت را شکیل و جذاب بنویس.",
+    "aiSearchGrounding": false,
+    "maxFileSizeMB": 50,
+    "aiModel": "gemini-3.6-flash",
+    "maintenanceMessage": "پیام‌رسان پرهام موقتاً در حال بروزرسانی و ارتقای سخت‌افزاری/نرم‌افزاری می‌باشد. لطفاً شکیبا باشید و دقایقی دیگر تلاش فرمایید.",
+    "aiTemperature": 0.7,
+    "welcomeMessage": "به پیام‌رسان فوق پیشرفته و رمزنگاری‌شده ما خوش آمدید! چت امن خود را آغاز کنید.",
+    "maintenanceMode": false,
+    "disableAIBot": false,
+    "disableRegistration": false
+  }
+}
